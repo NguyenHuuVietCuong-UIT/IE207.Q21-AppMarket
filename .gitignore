@@ -1,0 +1,64 @@
+# ==============================
+# 1. Node.js & Thư viện (Bắt buộc)
+# ==============================
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ==============================
+# 2. File Môi trường & Bảo mật (Cực kỳ quan trọng)
+# ==============================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+
+# ==============================
+# 3. Thư mục Build của Frontend (Vite/React)
+# ==============================
+dist/
+dist-ssr/
+build/
+out/
+.vercel/
+
+# ==============================
+# 4. Logs & Cấu hình IDE/Editor
+# ==============================
+logs
+*.log
+npm-debug.log*
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ==============================
+# 5. File hệ thống (Hệ điều hành)
+# ==============================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini

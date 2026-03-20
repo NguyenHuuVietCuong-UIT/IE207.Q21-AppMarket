@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Thiết lập nền trắng thuần và chữ xám đậm cho toàn bộ web để dễ đọc */
+  body {
+    @apply bg-white text-gray-900 font-sans antialiased;
+  }
+}
+
+@layer components {
+  /* Khung chứa nội dung chuẩn cho Desktop (giữ nội dung ở giữa màn hình) */
+  .container-custom {
+    @apply max-w-7xl mx-auto px-6 md:px-8;
+  }
+  
+  /* Style chuẩn cho Thẻ Ứng dụng (App Card) dùng chung cho mọi trang */
+  .app-card {
+    @apply flex flex-col cursor-pointer transition-transform duration-200 hover:-translate-y-1;
+  }
+  
+  /* Icon ứng dụng bo tròn lớn (Squircle) */
+  .app-icon {
+    @apply w-full aspect-square object-cover rounded-[2rem] shadow-sm border border-gray-100;
+  }
+}
