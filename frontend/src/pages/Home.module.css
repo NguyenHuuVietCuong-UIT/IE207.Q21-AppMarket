@@ -1,0 +1,13 @@
+.homeContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.loading {
+  text-align: center;
+  font-size: 18px;
+  color: var(--primary-color);
+  margin-top: 50px;
+  font-weight: bold;
+}

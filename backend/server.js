@@ -1,43 +1,58 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const connectDB = require('./config/db');
-const { errorHandler } = require('./middlewares/errorMiddleware');
+const mongoose = require('mongoose');
 
-// 1. Nạp các biến môi trường từ file .env
+// Load biến môi trường
 dotenv.config();
 
-// 2. Gọi hàm kết nối Database MongoDB Atlas
-connectDB();
-
-// 3. Khởi tạo ứng dụng Express
+// Khởi tạo ứng dụng Express
 const app = express();
 
-// 4. Cấu hình Middlewares cơ bản
-app.use(cors()); // Cho phép frontend (React.js) ở port khác gọi API mà không bị chặn
-app.use(express.json()); // Giúp server đọc được dữ liệu định dạng JSON gửi từ client
+// Middleware
+app.use(express.json()); // Xử lý body dạng JSON
+app.use(cors()); // Cho phép Frontend gọi API không bị lỗi Cross-Origin
 
-// 5. Khai báo (Import) các file Routes
+// Kết nối cơ sở dữ liệu MongoDB
+const connectDB = async () => {
+    try {
+        const conn = await mongoose.connect(process.env.MONGO_URI);
+        console.log(`MongoDB Connected: ${conn.connection.host}`);
+    } catch (error) {
+        console.error(`Lỗi kết nối MongoDB: ${error.message}`);
+        process.exit(1);
+    }
+};
+connectDB();
+
+// --- IMPORT CÁC ROUTES ---
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 const appRoutes = require('./routes/appRoutes');
-const orderRoutes = require('./routes/orderRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const walletRoutes = require('./routes/walletRoutes');
 
-// 6. Gắn Routes vào các điểm cuối (Endpoints) tương ứng
-app.use('/api/auth', authRoutes);
-app.use('/api/apps', appRoutes);
-app.use('/api/orders', orderRoutes);
+// --- MOUNT CÁC ROUTES VÀO URL ---
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/apps', appRoutes);
+app.use('/api/v1/transactions', transactionRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/wallet', walletRoutes);
 
-// 7. Route kiểm tra server cơ bản
+// Route mặc định kiểm tra health check
 app.get('/', (req, res) => {
-    res.send('API App Store đang chạy cực kỳ mượt mà...');
+    res.send('Chào mừng đến với API AppMarket (IE207.Q21)');
 });
 
-// 8. Gọi Middleware xử lý lỗi ở ĐÂY (Ngay trước app.listen)
-app.use(errorHandler);
+// Middleware xử lý lỗi (Bắt các lỗi 404 hoặc lỗi không xác định)
+app.use((req, res, next) => {
+    res.status(404).json({ success: false, message: 'Đường dẫn không tồn tại' });
+});
 
-// 9. Lắng nghe và khởi chạy Server
+// Khởi động server
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-    console.log(`Server đang chạy trên cổng ${PORT}`);
+    console.log(`Server đang chạy trên cổng ${PORT} ở chế độ ${process.env.NODE_ENV || 'development'}`);
 });

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 650" width="100%" height="100%">
+  <defs>
+    <!-- Hiệu ứng bóng đổ nhẹ cho biểu tượng -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+      <feOffset in="blur" dx="0" dy="5" result="offsetBlur"/>
+      <feMerge>
+        <feMergeNode in="offsetBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Container biểu tượng chính (Bo góc và màu xanh lá chủ đạo) -->
+  <g filter="url(#shadow)" transform="translate(100, 50)">
+    <rect width="300" height="300" rx="60" fill="#4CAF50"/> <!-- Màu xanh lá #4CAF50 -->
+    
+    <!-- Biểu tượng túi mua sắm màu trắng -->
+    <g transform="translate(75, 50)">
+      <!-- Thân túi -->
+      <path d="M15,200 L135,200 L150,50 L0,50 Z" fill="#FFFFFF"/>
+      <!-- Quai túi -->
+      <path d="M40,50 C40,0 110,0 110,50" fill="none" stroke="#FFFFFF" stroke-width="12"/>
+      
+      <!-- Các biểu tượng ứng dụng nhỏ trên túi (Màu xanh lá) -->
+      <g transform="translate(30, 80)">
+        <!-- Biểu tượng Ngôi sao (App 1) -->
+        <polygon points="15,0 20,10 30,10 22,18 25,28 15,22 5,28 8,18 0,10 10,10" fill="#4CAF50"/>
+        
+        <!-- Biểu tượng Dấu tích (App 2) -->
+        <g transform="translate(60, 0)">
+          <path d="M5,15 L15,25 L30,5" fill="none" stroke="#4CAF50" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        
+        <!-- Biểu tượng Lưới ô vuông (App grid) -->
+        <g transform="translate(15, 50)">
+          <rect x="0" y="0" width="20" height="20" fill="#4CAF50"/>
+          <rect x="30" y="0" width="20" height="20" fill="#4CAF50"/>
+          <rect x="0" y="30" width="20" height="20" fill="#4CAF50"/>
+          <rect x="30" y="30" width="20" height="20" fill="#4CAF50"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

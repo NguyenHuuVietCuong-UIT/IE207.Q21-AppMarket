@@ -1,121 +1,88 @@
-const App = require('../models/App');
+// backend/controllers/appController.js
+const App = require('../models/AppItem');
 
-// @desc    Lấy danh sách tất cả ứng dụng
-// @route   GET /api/apps
-const getApps = async (req, res) => {
+// 1. Get các app cho Slider (Tối ưu dữ liệu hiển thị)
+exports.getSliderApps = async (req, res) => {
     try {
-        const apps = await App.find({});
-        res.status(200).json({ success: true, count: apps.length, data: apps });
+        const limit = 50;
+        // Đề xuất: Đánh giá cao nhất
+        const topRated = await App.find({}).sort({ score: -1 }).limit(limit).select('title icon developer score minInstalls');
+
+        // Tải nhiều nhất hôm nay
+        const topToday = await App.find({}).sort({ todayDownloads: -1 }).limit(limit).select('title icon developer score todayDownloads');
+
+        // Tải nhiều nhất (Tổng)
+        const topTotal = await App.find({}).sort({ minInstalls: -1 }).limit(limit).select('title icon developer score minInstalls');
+
+        res.status(200).json({
+            success: true,
+            data: { topRated, topToday, topTotal }
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Lỗi server', error: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// @desc    Lấy chi tiết 1 ứng dụng
-// @route   GET /api/apps/:id
-const getAppById = async (req, res) => {
-    try {
-        const app = await App.findById(req.params.id);
-        if (!app) return res.status(404).json({ message: 'Không tìm thấy ứng dụng' });
-
-        res.status(200).json({ success: true, data: app });
-    } catch (error) {
-        res.status(500).json({ message: 'Lỗi server', error: error.message });
-    }
-};
-
-// @desc    Tạo ứng dụng mới 
-// @route   POST /api/apps
-const createApp = async (req, res) => {
-    try {
-        const newApp = await App.create(req.body);
-        res.status(201).json({ success: true, data: newApp });
-    } catch (error) {
-        res.status(400).json({ message: 'Không thể tạo ứng dụng', error: error.message });
-    }
-};
-
-// @desc    Tìm kiếm ứng dụng bằng MongoDB Atlas Search
-// @route   GET /api/apps/search?q=từ-khóa
-const searchApps = async (req, res) => {
+// 2. Get app bằng tên để gợi ý (Header)
+exports.getAppSuggestions = async (req, res) => {
     try {
         const keyword = req.query.q;
-        if (!keyword) {
-            return res.status(400).json({ message: 'Vui lòng nhập từ khóa tìm kiếm' });
-        }
+        const apps = await App.find({ title: { $regex: keyword, $options: 'i' } })
+            .select('title icon')
+            .limit(10);
+        res.status(200).json({ success: true, data: apps });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 
-        // Sử dụng Aggregation Pipeline cho Atlas Search
-        const apps = await App.aggregate([
-            {
-                $search: {
-                    index: 'default', // Tên index bạn sẽ tạo trên giao diện MongoDB Atlas
-                    text: {
-                        query: keyword,
-                        path: ['title', 'description'], // Tìm kiếm trên cả tên và mô tả
-                        fuzzy: { maxEdits: 1 } // Chấp nhận gõ sai tối đa 1 ký tự (VD: "gamee" -> "game")
-                    }
-                }
-            },
-            { $limit: 10 } // Giới hạn trả về 10 kết quả
-        ]);
-
+// 3. Get app hiển thị trên trang Kết quả tìm kiếm
+exports.getSearchResults = async (req, res) => {
+    try {
+        const keyword = req.query.q;
+        const apps = await App.find({
+            $or: [
+                { title: { $regex: keyword, $options: 'i' } },
+                { description: { $regex: keyword, $options: 'i' } }
+            ]
+        }).select('title icon developer score minInstalls price');
         res.status(200).json({ success: true, count: apps.length, data: apps });
     } catch (error) {
-        res.status(500).json({ message: 'Lỗi tìm kiếm', error: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// @desc    Đề xuất ứng dụng tương tự (Content-Based)
-// @route   GET /api/apps/:id/recommendations
-const getRelatedApps = async (req, res) => {
+// 4. Get app đúng tên để lấy TOÀN BỘ thông tin (App Detail)
+exports.getAppDetailByName = async (req, res) => {
     try {
-        // 1. Tìm ứng dụng hiện tại để lấy danh sách tags
-        const currentApp = await App.findById(req.params.id);
-        if (!currentApp) return res.status(404).json({ message: 'Không tìm thấy ứng dụng' });
-
-        // 2. Tìm các ứng dụng khác có chứa ít nhất 1 tag giống với ứng dụng hiện tại
-        const relatedApps = await App.find({
-            _id: { $ne: currentApp._id }, // Loại trừ chính nó ra khỏi danh sách gợi ý
-            tags: { $in: currentApp.tags } // Toán tử $in: Tìm các app có tag trùng khớp
-        }).limit(5); // Chỉ lấy top 5
-
-        res.status(200).json({ success: true, count: relatedApps.length, data: relatedApps });
+        const app = await App.findOne({ title: req.params.title });
+        if (!app) return res.status(404).json({ message: 'Không tìm thấy ứng dụng' });
+        res.status(200).json({ success: true, data: app });
     } catch (error) {
-        res.status(500).json({ message: 'Lỗi server', error: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
-// @desc    Tải xuống file text demo (Yêu cầu đăng nhập và đã mua)
-// @route   GET /api/apps/:id/download
-// @access  Private
-const downloadAppDemo = async (req, res) => {
+// LOGIC CỘNG LƯỢT TẢI VÀ RESET NGÀY
+exports.incrementDownload = async (req, res) => {
     try {
-        const appId = req.params.id;
-        const user = req.user; // Đã được lấy từ authMiddleware
+        const app = await App.findById(req.params.id);
+        const todayStr = new Date().toLocaleDateString();
 
-        // 1. Kiểm tra quyền sở hữu: AppId có nằm trong mảng purchasedApps không?
-        if (!user.purchasedApps.includes(appId)) {
-            return res.status(403).json({ message: 'Bạn chưa mua ứng dụng này, không thể tải xuống!' });
+        if (app.lastDownloadDate !== todayStr) {
+            // Nếu qua ngày mới, reset todayDownloads về 1
+            app.todayDownloads = 1;
+            app.lastDownloadDate = todayStr;
+        } else {
+            // Trong cùng ngày, cộng 1
+            app.todayDownloads += 1;
         }
 
-        const app = await App.findById(appId);
+        app.totalDownloads += 1; // Tổng lượt tải hệ thống mình
+        await app.save();
 
-        // 2. Tạo nội dung file Text động
-        const fileContent = `--- XÁC NHẬN TẢI XUỐNG ---\n`
-            + `Tên ứng dụng: ${app.title}\n`
-            + `Người tải: ${user.name} (${user.email})\n`
-            + `Ngày tải: ${new Date().toLocaleString('vi-VN')}\n`
-            + `\nĐây là file text giả lập dùng cho đồ án môn học.`;
-
-        // 3. Thiết lập Header để trình duyệt tự động tải file .txt về máy
-        res.setHeader('Content-disposition', `attachment; filename=Demo_${app.title.replace(/\s+/g, '_')}.txt`);
-        res.setHeader('Content-type', 'text/plain; charset=utf-8');
-
-        // 4. Trả file về cho client
-        res.send(fileContent);
+        res.status(200).json({ success: true, message: 'Đã cập nhật lượt tải' });
     } catch (error) {
-        res.status(500).json({ message: 'Lỗi tải xuống', error: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
-
-module.exports = { getApps, getAppById, createApp, searchApps, getRelatedApps, downloadAppDemo };

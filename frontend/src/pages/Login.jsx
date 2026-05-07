@@ -1,119 +1,189 @@
+// frontend/src/pages/Login.jsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowLeft, PlayCircle, User } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
+import styles from './Login.module.css';
 
 const Login = () => {
-    // State để chuyển đổi giữa form Đăng nhập và form Đăng ký
-    const [isRegister, setIsRegister] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    // State chuyển đổi giữa Login và Register
+    const [isLoginMode, setIsLoginMode] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    // States chứa dữ liệu Form
+    const [formData, setFormData] = useState({
+        identifier: '', // Dùng cho Đăng nhập (Email hoặc SĐT)
+        email: '',      // Dùng cho Đăng ký
+        phone: '',      // Dùng cho Đăng ký
+        fullName: '',   // Dùng cho Đăng ký
+        password: '',
+        confirmPassword: '' // Dùng cho Đăng ký
+    });
+
+    // Cập nhật state khi gõ phím
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+        setError(''); // Xóa lỗi khi người dùng bắt đầu gõ lại
+    };
+
+    // Reset form khi chuyển chế độ
+    const toggleMode = () => {
+        setIsLoginMode(!isLoginMode);
+        setError('');
+        setFormData({
+            identifier: '', email: '', phone: '', fullName: '', password: '', confirmPassword: ''
+        });
+    };
+
+    // Hàm xử lý Submit (Cả đăng nhập và đăng ký)
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Giả lập quá trình gọi API và đăng nhập thành công
-        alert(isRegister ? "Đăng ký thành công! Đang chuyển hướng..." : "Đăng nhập thành công! Đang chuyển hướng...");
-        navigate('/'); // Đưa người dùng về lại trang chủ
+        setLoading(true);
+        setError('');
+
+        try {
+            if (isLoginMode) {
+                // --- LOGIC ĐĂNG NHẬP ---
+                const res = await axios.post('/api/v1/auth/login', {
+                    identifier: formData.identifier,
+                    password: formData.password
+                });
+
+                if (res.data.success) {
+                    // Lưu token và thông tin user vào localStorage
+                    localStorage.setItem('token', res.data.token);
+                    localStorage.setItem('user', JSON.stringify(res.data.user));
+                    // Chuyển hướng về trang chủ
+                    navigate('/');
+                }
+            } else {
+                // --- LOGIC ĐĂNG KÝ ---
+                if (formData.password !== formData.confirmPassword) {
+                    setError('Mật khẩu xác nhận không khớp!');
+                    setLoading(false);
+                    return;
+                }
+
+                if (!formData.email && !formData.phone) {
+                    setError('Vui lòng nhập Email hoặc Số điện thoại!');
+                    setLoading(false);
+                    return;
+                }
+
+                const res = await axios.post('/api/v1/auth/register', {
+                    fullName: formData.fullName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    password: formData.password
+                });
+
+                if (res.data.success) {
+                    // Đăng ký thành công thì tự động đăng nhập luôn
+                    localStorage.setItem('token', res.data.token);
+                    localStorage.setItem('user', JSON.stringify(res.data.user));
+                    navigate('/');
+                }
+            }
+        } catch (err) {
+            // Hiển thị lỗi từ backend trả về (nếu có)
+            setError(err.response?.data?.message || 'Đã xảy ra lỗi, vui lòng thử lại sau.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-6 relative">
-
-            {/* Nút Quay lại Trang chủ nằm ở góc trên cùng bên trái */}
-            <div className="absolute top-6 left-6 md:top-10 md:left-10">
-                <Link to="/" className="flex items-center gap-2 text-gray-500 hover:text-primary transition font-semibold">
-                    <ArrowLeft size={24} /> Quay lại
-                </Link>
-            </div>
-
-            {/* Khung Form trung tâm */}
-            <div className="w-full max-w-md bg-white p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-                {/* Tiêu đề & Logo */}
-                <div className="flex flex-col items-center mb-8 text-center">
-                    <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-white mb-5 shadow-md">
-                        <PlayCircle size={32} />
-                    </div>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                        {isRegister ? 'Tạo tài khoản mới' : 'Chào mừng trở lại'}
-                    </h2>
-                    <p className="text-gray-500 mt-2 text-base">
-                        {isRegister ? 'Đăng ký để tải xuống hàng ngàn ứng dụng' : 'Đăng nhập để tiếp tục khám phá App Market'}
+        <div className={styles.pageContainer}>
+            <div className={styles.authCard}>
+                <div className={styles.logoArea}>
+                    <Link to="/" className={styles.logoText}>AppMarket</Link>
+                    <p className={styles.subtitle}>
+                        {isLoginMode ? 'Đăng nhập để trải nghiệm không giới hạn' : 'Đăng ký tài khoản mới ngay hôm nay'}
                     </p>
                 </div>
 
-                {/* Form nhập liệu */}
-                <form onSubmit={handleSubmit} className="space-y-5">
+                {error && <div className={styles.errorMessage}>{error}</div>}
 
-                    {/* Ô Họ tên (Chỉ hiện khi Đăng ký) */}
-                    {isRegister && (
-                        <div>
-                            <label className="block text-sm font-bold text-gray-700 mb-2">Họ và tên</label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <form onSubmit={handleSubmit}>
+
+                    {/* ================= FORM ĐĂNG KÝ ================= */}
+                    {!isLoginMode && (
+                        <>
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Họ và Tên (*)</label>
                                 <input
-                                    type="text"
-                                    placeholder="Nhập họ và tên..."
-                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition text-gray-900 text-lg"
-                                    required
+                                    type="text" name="fullName" className={styles.input} required={!isLoginMode}
+                                    placeholder="Ví dụ: Nguyễn Văn A"
+                                    value={formData.fullName} onChange={handleChange}
                                 />
                             </div>
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Email (Tùy chọn)</label>
+                                <input
+                                    type="email" name="email" className={styles.input}
+                                    placeholder="nguyenvana@gmail.com"
+                                    value={formData.email} onChange={handleChange}
+                                />
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Số điện thoại (Tùy chọn)</label>
+                                <input
+                                    type="text" name="phone" className={styles.input}
+                                    placeholder="0912345678"
+                                    value={formData.phone} onChange={handleChange}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {/* ================= FORM ĐĂNG NHẬP ================= */}
+                    {isLoginMode && (
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Email hoặc Số điện thoại</label>
+                            <input
+                                type="text" name="identifier" className={styles.input} required={isLoginMode}
+                                placeholder="Nhập email hoặc số điện thoại"
+                                value={formData.identifier} onChange={handleChange}
+                            />
                         </div>
                     )}
 
-                    {/* Ô Email */}
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Địa chỉ Email</label>
-                        <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                            <input
-                                type="email"
-                                placeholder="example@email.com"
-                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition text-gray-900 text-lg"
-                                required
-                            />
-                        </div>
+                    {/* ================= TRƯỜNG DÙNG CHUNG ================= */}
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Mật khẩu</label>
+                        <input
+                            type="password" name="password" className={styles.input} required
+                            placeholder="Nhập mật khẩu"
+                            value={formData.password} onChange={handleChange}
+                        />
                     </div>
 
-                    {/* Ô Mật khẩu */}
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Mật khẩu</label>
-                        <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    {!isLoginMode && (
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Xác nhận mật khẩu (*)</label>
                             <input
-                                type="password"
-                                placeholder="••••••••"
-                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-12 pr-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition text-gray-900 text-lg"
-                                required
+                                type="password" name="confirmPassword" className={styles.input} required={!isLoginMode}
+                                placeholder="Nhập lại mật khẩu"
+                                value={formData.confirmPassword} onChange={handleChange}
                             />
-                        </div>
-                    </div>
-
-                    {/* Quên mật khẩu (Chỉ hiện khi Đăng nhập) */}
-                    {!isRegister && (
-                        <div className="flex justify-end pt-1">
-                            <a href="#" className="text-sm font-bold text-primary hover:text-primary-hover transition">Quên mật khẩu?</a>
                         </div>
                     )}
 
-                    {/* Nút Submit */}
-                    <button
-                        type="submit"
-                        className="w-full py-4 mt-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary-hover transition shadow-md hover:shadow-lg text-lg flex justify-center items-center gap-2"
-                    >
-                        {isRegister ? 'Đăng ký tài khoản' : 'Đăng nhập ngay'}
+                    <button type="submit" className={styles.submitBtn} disabled={loading}>
+                        {loading ? 'Đang xử lý...' : (isLoginMode ? 'Đăng nhập' : 'Đăng ký')}
                     </button>
                 </form>
 
-                {/* Chuyển đổi trạng thái Đăng nhập / Đăng ký */}
-                <div className="mt-8 text-center text-gray-600 text-base">
-                    {isRegister ? 'Bạn đã có tài khoản? ' : 'Bạn chưa có tài khoản? '}
-                    <button
-                        onClick={() => setIsRegister(!isRegister)}
-                        className="font-bold text-primary hover:text-primary-hover transition underline-offset-4 hover:underline"
-                    >
-                        {isRegister ? 'Đăng nhập' : 'Đăng ký tại đây'}
+                <div className={styles.toggleArea}>
+                    {isLoginMode ? 'Chưa có tài khoản?' : 'Đã có tài khoản?'}
+                    <button type="button" className={styles.toggleLink} onClick={toggleMode}>
+                        {isLoginMode ? 'Đăng ký ngay' : 'Đăng nhập'}
                     </button>
                 </div>
 
+                <Link to="/" className={styles.backHome}>← Quay về Trang chủ</Link>
             </div>
         </div>
     );

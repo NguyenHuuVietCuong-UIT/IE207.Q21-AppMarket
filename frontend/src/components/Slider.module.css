@@ -1,0 +1,122 @@
+.sliderSection {
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 16px;
+  padding-left: 8px;
+  border-left: 4px solid var(--primary-color); /* Nét gạch xanh lá trang trí tiêu đề */
+}
+
+.sliderContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.trackWrapper {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  /* Ẩn thanh cuộn mặc định của trình duyệt cho đẹp */
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
+}
+.trackWrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.track {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+/* Các nút bấm trượt (Mũi tên) */
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 10;
+  color: #333;
+  font-weight: bold;
+  font-size: 18px;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.btnLeft {
+  left: -20px;
+}
+
+.btnRight {
+  right: -20px;
+}
+
+/* Thẻ App (Card) */
+.appCard {
+  min-width: 140px;
+  max-width: 140px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.appCard:hover {
+  transform: translateY(-4px);
+}
+
+.appIcon {
+  width: 140px;
+  height: 140px;
+  border-radius: 20px; /* Bo góc đặc trưng của app icon */
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 12px;
+}
+
+.appTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Cắt chữ dài thành dấu ... */
+  margin-bottom: 4px;
+}
+
+.appDeveloper {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.appRating {
+  font-size: 12px;
+  color: #4CAF50; /* Màu xanh lá chủ đạo */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

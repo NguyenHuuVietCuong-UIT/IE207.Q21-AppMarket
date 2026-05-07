@@ -1,0 +1,314 @@
+/* frontend/src/pages/AppDetail.module.css */
+
+.container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Cấu trúc Header: Icon + Info (Trái) và Video (Phải) */
+.headerContent {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+.headerContentNoVideo {
+  display: block; 
+  margin-bottom: 40px;
+}
+
+.mainInfo {
+  display: flex;
+  gap: 24px;
+}
+
+.icon {
+  width: 140px;
+  height: 140px;
+  border-radius: 28px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  object-fit: cover;
+}
+
+.details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.developer {
+  font-size: 16px;
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.stats {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+/* Video */
+.videoContainer {
+  width: 100%;
+  height: 250px;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.videoPlaceholder {
+  color: #fff;
+  font-size: 14px;
+}
+
+/* Khu vực nút bấm và tiến trình */
+.actionArea {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.installBtn {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 10px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.installBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.uninstallBtn {
+  background-color: #f3f4f6;
+  color: #ef4444;
+  padding: 10px 24px;
+  border: 1px solid #fee2e2;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.progressContainer {
+  flex: 1;
+  max-width: 250px;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background-color: var(--primary-color);
+  transition: width 0.1s linear;
+}
+
+/* Tiêu đề các mục */
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #eee;
+  margin-top: 40px;
+}
+
+/* Screenshot Slider */
+.screenshotSection {
+  position: relative;
+  margin-bottom: 40px;
+}
+
+.screenshotWrapper {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding-bottom: 10px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.screenshotWrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: 1px solid #ddd;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  font-weight: bold;
+}
+
+.navBtn:hover {
+  background-color: #f9fafb;
+}
+
+.prevBtn { left: -20px; }
+.nextBtn { right: -20px; }
+
+.screenshot {
+  height: 350px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Giới thiệu ứng dụng */
+.introContent {
+  position: relative;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.collapsed {
+  max-height: 90px;
+}
+
+.expanded {
+  max-height: 2000px;
+}
+
+.description {
+  line-height: 1.6;
+  color: #4b5563;
+  white-space: pre-line;
+}
+
+.toggleBtn {
+  color: var(--primary-color);
+  background: none;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  padding: 0;
+  font-size: 15px;
+}
+
+.toggleBtn:hover {
+  text-decoration: underline;
+}
+
+/* Đánh giá và Bình luận */
+.ratingSummary {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.bigScore {
+  font-size: 48px;
+  font-weight: 700;
+  color: #333;
+}
+
+.totalReviews {
+  color: #666;
+  font-size: 15px;
+}
+
+.reviewForm {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+  border: 1px solid #eee;
+}
+
+.starRating {
+  margin-bottom: 12px;
+}
+
+.reviewInput {
+  width: 100%;
+  height: 80px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 16px;
+  resize: vertical;
+  outline: none;
+}
+
+.reviewInput:focus {
+  border-color: var(--primary-color);
+}
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reviewItem {
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #f3f4f6;
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.reviewUser {
+  font-weight: 600;
+  color: #333;
+}
+
+.reviewStars {
+  color: var(--primary-color);
+  letter-spacing: 2px;
+}
+
+.reviewComment {
+  color: #4b5563;
+  line-height: 1.5;
+}

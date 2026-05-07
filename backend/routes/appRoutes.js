@@ -1,24 +1,17 @@
 const express = require('express');
+const AppController = require('../controllers/appController');
+const reviewRouter = require('./reviewRoutes');
+
 const router = express.Router();
-const { getApps, getAppById, createApp, searchApps, getRelatedApps, downloadAppDemo } = require('../controllers/appController');
-const { protect } = require('../middlewares/authMiddleware');
 
-// Các route chung
-router.route('/')
-    .get(getApps)
-    .post(createApp);
+// Điều hướng request đánh giá sang reviewRoutes
+// Vd: GET hoặc POST đến /api/v1/apps/:appId/reviews
+router.use('/:appId/reviews', reviewRouter);
 
-// Route TÌM KIẾM (Phải đặt trước /:id)
-router.get('/search', searchApps);
-
-// Các route liên quan đến 1 ID cụ thể
-router.route('/:id')
-    .get(getAppById);
-
-// Route ĐỀ XUẤT
-router.get('/:id/recommendations', getRelatedApps);
-
-// Route TẢI XUỐNG (Cần protect)
-router.get('/:id/download', protect, downloadAppDemo);
+router.get('/sliders', AppController.getSliderApps);
+router.get('/suggestions', AppController.getAppSuggestions);
+router.get('/search-results', AppController.getSearchResults);
+router.get('/detail/:title', AppController.getAppDetailByName);
+router.post('/:id/download-count', AppController.incrementDownload);
 
 module.exports = router;

@@ -1,30 +1,26 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const userDAO = require('../daos/userDAO');
 
-const protect = async (req, res, next) => {
+exports.protect = async (req, res, next) => {
     let token;
 
-    // Kiểm tra xem header có chứa token với định dạng "Bearer <token>" không
+    // Lấy token từ header Authorization: Bearer <token>
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        try {
-            // Lấy token từ chuỗi
-            token = req.headers.authorization.split(' ')[1];
-
-            // Giải mã token để lấy ID người dùng
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-            // Tìm user trong database và gắn vào req (loại bỏ field password)
-            req.user = await User.findById(decoded.id).select('-password');
-
-            next(); // Cho phép đi tiếp vào Controller
-        } catch (error) {
-            res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn' });
-        }
+        token = req.headers.authorization.split(' ')[1];
     }
 
     if (!token) {
-        res.status(401).json({ success: false, message: 'Không có quyền truy cập, vui lòng đăng nhập' });
+        return res.status(401).json({ success: false, message: 'Không có quyền truy cập, vui lòng đăng nhập' });
+    }
+
+    try {
+        // Giải mã token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Lấy thông tin user từ DAO và gán vào req.user để các controller khác sử dụng
+        req.user = await userDAO.findById(decoded.id);
+        next();
+    } catch (error) {
+        return res.status(401).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn' });
     }
 };
-
-module.exports = { protect };

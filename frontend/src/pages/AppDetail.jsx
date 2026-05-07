@@ -1,144 +1,252 @@
-import React, { useState, useEffect } from 'react';
+// frontend/src/pages/AppDetail.jsx
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Star, Download, Share2, MessageCircle } from 'lucide-react';
-import PurchaseModal from '../components/PurchaseModal';
-import Slider from '../components/Slider';
-
-// Dữ liệu giả định cho trang chi tiết
-const MOCK_DETAIL = {
-    id: 1,
-    title: 'Tử Thần Đại Chiến - Bleach Mobile',
-    developer: 'Seireitei Games',
-    rating: 4.8,
-    reviewsCount: '12.5K',
-    price: 2.99,
-    image: 'https://loremflickr.com/400/400/anime?lock=1',
-    screenshots: [
-        'https://loremflickr.com/800/400/game?lock=10',
-        'https://loremflickr.com/800/400/game?lock=11',
-        'https://loremflickr.com/800/400/game?lock=12',
-    ],
-    description: 'Trải nghiệm thế giới anime nhập vai cực đỉnh với Tử Thần Đại Chiến. Thu thập các thẻ bài nhân vật mạnh mẽ, nâng cấp kỹ năng và tham gia vào các trận chiến PvP thời gian thực nảy lửa. Đồ họa 3D sống động cùng hiệu ứng kỹ năng mãn nhãn chắc chắn sẽ làm hài lòng các fan hâm mộ.',
-    comments: [
-        { user: 'Nguyễn Văn A', avatar: 'https://i.pravatar.cc/150?u=1', text: 'Game đồ họa cực đẹp, đánh rất sướng tay!', star: 5 },
-        { user: 'Trần Thị B', avatar: 'https://i.pravatar.cc/150?u=2', text: 'Nạp hơi chát nhưng bù lại sự kiện nhiều.', star: 4 },
-    ]
-};
-
-// Dữ liệu giả cho slider "Ứng dụng liên quan"
-const RELATED_APPS = [
-    { id: 10, title: 'Hải Tặc Đại Chiến', developer: 'Anime Studio', rating: 4.5, price: 0, image: 'https://loremflickr.com/400/400/ninja?lock=20' },
-    { id: 11, title: 'Đấu Trường Chân Lý', developer: 'Riot Games', rating: 4.9, price: 0, image: 'https://loremflickr.com/400/400/fight?lock=21' },
-    { id: 12, title: 'Sát Thủ Bóng Đêm', developer: 'KMS', rating: 4.2, price: 1.99, image: 'https://loremflickr.com/400/400/sword?lock=22' },
-    { id: 13, title: 'Anh Hùng AFK', developer: 'VNG', rating: 4.6, price: 0, image: 'https://loremflickr.com/400/400/hero?lock=23' },
-];
+import axios from 'axios';
+import styles from './AppDetail.module.css';
 
 const AppDetail = () => {
-    const { id } = useParams(); // Lấy ID từ thanh địa chỉ (ví dụ: /app/1)
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { title } = useParams();
+    const screenshotRef = useRef(null);
 
-    // Kéo trang lên đầu mỗi khi chuyển sang app khác
+    // States Dữ liệu
+    const [app, setApp] = useState(null);
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showFullDesc, setShowFullDesc] = useState(false);
+
+    // States Cài đặt & Đánh giá
+    const [status, setStatus] = useState('IDLE');
+    const [progress, setProgress] = useState(0);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
+
+    // Fetch dữ liệu khi load trang
     useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [id]);
+        const fetchAppAndReviews = async () => {
+            try {
+                const appRes = await axios.get(`/api/v1/apps/detail/${encodeURIComponent(title)}`);
 
-    const handleAction = () => {
-        if (MOCK_DETAIL.price === 0) {
-            alert(`Đang tải xuống ${MOCK_DETAIL.title}...`);
-        } else {
-            setIsModalOpen(true);
+                if (appRes.data.success) {
+                    const fetchedApp = appRes.data.data;
+                    setApp(fetchedApp);
+
+                    const reviewRes = await axios.get(`/api/v1/apps/${fetchedApp._id}/reviews`);
+                    if (reviewRes.data.success) {
+                        setReviews(reviewRes.data.data);
+                    }
+                }
+                setLoading(false);
+            } catch (err) {
+                console.error("Lỗi lấy dữ liệu app:", err);
+                setLoading(false);
+            }
+        };
+        fetchAppAndReviews();
+    }, [title]);
+
+    const scrollScreenshots = (direction) => {
+        if (screenshotRef.current) {
+            const scrollAmount = direction === 'left' ? -400 : 400;
+            screenshotRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         }
     };
 
+    const handleInstall = () => {
+        setStatus('DOWNLOADING');
+        setProgress(0);
+        const totalTime = (app.sizeMB || 50) * 50;
+        const intervalTime = 100;
+        const step = (intervalTime / totalTime) * 100;
+
+        const timer = setInterval(() => {
+            setProgress((prev) => {
+                if (prev >= 100) {
+                    clearInterval(timer);
+                    completeInstallation();
+                    return 100;
+                }
+                return prev + step;
+            });
+        }, intervalTime);
+    };
+
+    const completeInstallation = async () => {
+        try {
+            await axios.post(`/api/v1/apps/${app._id}/download-count`);
+            setStatus('INSTALLED');
+            alert('Đã tải xong! Trình duyệt sẽ lưu file .txt chứa tên app.');
+        } catch (err) {
+            console.error("Lỗi khi hoàn tất cài đặt", err);
+        }
+    };
+
+    const handleUninstall = () => {
+        if (window.confirm("Bạn có chắc chắn muốn gỡ cài đặt ứng dụng này?")) {
+            setStatus('IDLE');
+            setProgress(0);
+        }
+    };
+
+    const handleSubmitReview = async (e) => {
+        e.preventDefault();
+        try {
+            alert(`Đã gửi đánh giá ${rating} sao với nội dung: ${comment}`);
+            setComment('');
+        } catch (err) {
+            alert("Lỗi khi gửi đánh giá (Vui lòng đăng nhập và cài đặt app trước)");
+        }
+    };
+
+    // --- HÀM XỬ LÝ LINK YOUTUBE ---
+    const getEmbedUrl = (url) => {
+        if (!url) return null;
+        if (url.includes('youtube.com/watch?v=')) {
+            return url.replace('watch?v=', 'embed/');
+        }
+        if (url.includes('youtu.be/')) {
+            return url.replace('youtu.be/', 'youtube.com/embed/');
+        }
+        return url;
+    };
+
+    if (loading) return <div className={styles.container}>Đang tải...</div>;
+    if (!app) return <div className={styles.container}>Không tìm thấy ứng dụng.</div>;
+
     return (
-        <div className="container-custom py-10">
+        <div className={styles.container}>
 
-            {/* 1. Phần Đầu: Thông tin chung & Nút Mua */}
-            <div className="flex flex-col md:flex-row gap-8 mb-12 bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
-                <img src={MOCK_DETAIL.image} alt={MOCK_DETAIL.title} className="w-32 h-32 md:w-48 md:h-48 rounded-[2rem] object-cover shadow-md" />
+            {/* 1. Phần Header: Logic ẩn video bằng class css */}
+            <div className={app.video ? styles.headerContent : styles.headerContentNoVideo}>
+                <div className={styles.mainInfo}>
+                    <img src={app.icon} alt={app.title} className={styles.icon} />
+                    <div className={styles.details}>
+                        <h1 className={styles.title}>{app.title}</h1>
+                        <p className={styles.developer}>{app.developer}</p>
 
-                <div className="flex-1 flex flex-col justify-center">
-                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{MOCK_DETAIL.title}</h1>
-                    <p className="text-lg text-primary font-medium mb-4">{MOCK_DETAIL.developer}</p>
-
-                    <div className="flex items-center gap-6 mb-6">
-                        <div className="flex items-center flex-col">
-                            <span className="text-xl font-bold text-gray-900 flex items-center gap-1">{MOCK_DETAIL.rating} <Star size={20} className="fill-yellow-400 text-yellow-400" /></span>
-                            <span className="text-sm text-gray-500">{MOCK_DETAIL.reviewsCount} Đánh giá</span>
+                        <div className={styles.stats}>
+                            <span>⭐ {app.score?.toFixed(1) || '0.0'} ({app.reviews || 0} đánh giá)</span>
+                            <span>📥 {app.minInstalls || 0} lượt tải</span>
+                            <span>📦 {app.sizeMB || '50'} MB</span>
                         </div>
-                        <div className="w-px h-10 bg-gray-200"></div> {/* Đường gạch dọc */}
-                        <div className="flex items-center flex-col">
-                            <span className="text-xl font-bold text-gray-900">100K+</span>
-                            <span className="text-sm text-gray-500">Lượt tải</span>
-                        </div>
-                    </div>
 
-                    <div className="flex gap-4">
-                        <button
-                            onClick={handleAction}
-                            className="flex-1 md:flex-none px-10 py-3 bg-primary text-white rounded-full font-bold text-lg hover:bg-primary-hover transition shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-                        >
-                            {MOCK_DETAIL.price === 0 ? (
-                                <><Download size={20} /> Tải miễn phí</>
-                            ) : (
-                                `Mua ngay $${MOCK_DETAIL.price}`
+                        <div className={styles.actionArea}>
+                            {status === 'IDLE' && (
+                                <button className={styles.installBtn} onClick={handleInstall}>
+                                    {app.price === 0 ? 'Cài đặt' : `Mua - ${app.price.toLocaleString('vi-VN')}đ`}
+                                </button>
                             )}
-                        </button>
-                        <button className="p-3 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition">
-                            <Share2 size={24} />
-                        </button>
+                            {status === 'DOWNLOADING' && (
+                                <div className={styles.progressContainer}>
+                                    <div className={styles.progressBar} style={{ width: `${progress}%` }}></div>
+                                </div>
+                            )}
+                            {status === 'INSTALLED' && (
+                                <>
+                                    <button className={styles.installBtn} style={{ backgroundColor: '#eee', color: '#333' }}>Mở</button>
+                                    <button className={styles.uninstallBtn} onClick={handleUninstall}>Gỡ cài đặt</button>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
+
+                {/* --- CHỈ HIỂN THỊ VIDEO KHI CÓ DỮ LIỆU --- */}
+                {app.video && (
+                    <div className={styles.videoContainer}>
+                        {app.video.includes('youtube') || app.video.includes('youtu.be') ? (
+                            <iframe
+                                className={styles.video}
+                                src={getEmbedUrl(app.video)}
+                                title="Trailer Ứng dụng"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        ) : (
+                            <video controls className={styles.video} poster={app.videoImage}>
+                                <source src={app.video} type="video/mp4" />
+                            </video>
+                        )}
+                    </div>
+                )}
             </div>
 
-            {/* 2. Phần Hình ảnh Mô tả (Gallery) */}
-            <div className="mb-12">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Hình ảnh</h2>
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide py-2">
-                    {MOCK_DETAIL.screenshots.map((img, idx) => (
-                        <img key={idx} src={img} alt="Screenshot" className="w-[280px] md:w-[400px] h-[160px] md:h-[225px] object-cover rounded-2xl shadow-sm border border-gray-100 flex-shrink-0" />
-                    ))}
-                </div>
-            </div>
-
-            {/* 3. Phần Mô tả chi tiết */}
-            <div className="mb-12 bg-gray-50 p-8 rounded-3xl">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Về ứng dụng này</h2>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line text-lg">{MOCK_DETAIL.description}</p>
-            </div>
-
-            {/* 4. Phần Đánh giá & Bình luận */}
-            <div className="mb-16">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <MessageCircle className="text-primary" /> Đánh giá từ người dùng
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {MOCK_DETAIL.comments.map((comment, idx) => (
-                        <div key={idx} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex gap-4">
-                            <img src={comment.avatar} alt={comment.user} className="w-12 h-12 rounded-full" />
-                            <div>
-                                <h4 className="font-bold text-gray-900">{comment.user}</h4>
-                                <div className="flex text-yellow-400 mb-2">
-                                    {[...Array(comment.star)].map((_, i) => <Star key={i} size={14} className="fill-current" />)}
-                                </div>
-                                <p className="text-gray-600 text-sm">{comment.text}</p>
-                            </div>
+            {/* 2. Slider Hình ảnh ứng dụng */}
+            {app.screenshots && app.screenshots.length > 0 && (
+                <>
+                    <div className={styles.sectionTitle}>Hình ảnh ứng dụng</div>
+                    <div className={styles.screenshotSection}>
+                        <button className={`${styles.navBtn} ${styles.prevBtn}`} onClick={() => scrollScreenshots('left')}>❮</button>
+                        <div className={styles.screenshotWrapper} ref={screenshotRef}>
+                            {app.screenshots.map((src, index) => (
+                                <img key={index} src={src} alt={`Screenshot ${index}`} className={styles.screenshot} />
+                            ))}
                         </div>
-                    ))}
-                </div>
+                        <button className={`${styles.navBtn} ${styles.nextBtn}`} onClick={() => scrollScreenshots('right')}>❯</button>
+                    </div>
+                </>
+            )}
+
+            {/* 3. Giới thiệu ứng dụng */}
+            <div className={styles.sectionTitle}>Giới thiệu ứng dụng</div>
+            <div className={`${styles.introContent} ${!showFullDesc ? styles.collapsed : styles.expanded}`}>
+                <p className={styles.description}>{app.description || 'Chưa có thông tin giới thiệu.'}</p>
+            </div>
+            <button className={styles.toggleBtn} onClick={() => setShowFullDesc(!showFullDesc)}>
+                {showFullDesc ? 'Thu gọn' : 'Xem thêm'}
+            </button>
+
+            {/* 4. Đánh giá và Bình luận */}
+            <div className={styles.sectionTitle}>Đánh giá từ người dùng</div>
+            <div className={styles.ratingSummary}>
+                <div className={styles.bigScore}>{app.score?.toFixed(1) || '0.0'}</div>
+                <div className={styles.totalReviews}>Tổng cộng {app.reviews || 0} lượt đánh giá</div>
             </div>
 
-            {/* 5. Ứng dụng liên quan (Tái sử dụng Slider) */}
-            <div className="border-t border-gray-200 pt-12">
-                <Slider title="Có thể bạn cũng thích" apps={RELATED_APPS} />
-            </div>
+            {status === 'INSTALLED' && (
+                <form onSubmit={handleSubmitReview} className={styles.reviewForm}>
+                    <h4 style={{ marginBottom: '10px' }}>Viết đánh giá của bạn</h4>
+                    <div className={styles.starRating}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <span
+                                key={star}
+                                onClick={() => setRating(star)}
+                                style={{ color: star <= rating ? '#4CAF50' : '#ddd', cursor: 'pointer', fontSize: '28px' }}
+                            >
+                                ★
+                            </span>
+                        ))}
+                    </div>
+                    <textarea
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="Chia sẻ trải nghiệm của bạn về ứng dụng này..."
+                        className={styles.reviewInput}
+                        required
+                    />
+                    <button type="submit" className={styles.installBtn}>Gửi đánh giá</button>
+                </form>
+            )}
 
-            {/* Modal Thanh Toán */}
-            <PurchaseModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                app={MOCK_DETAIL}
-            />
+            {/* Danh sách bình luận */}
+            <div className={styles.reviewList}>
+
+                {/* Chỉ lấy Review từ người dùng web (DB của bạn) */}
+                {reviews.map(rev => (
+                    <div key={rev._id} className={styles.reviewItem}>
+                        <div className={styles.reviewHeader}>
+                            <span className={styles.reviewUser}>{rev.user?.fullName || 'Người dùng AppMarket'}</span>
+                            <span className={styles.reviewStars}>{'★'.repeat(rev.rating)}</span>
+                        </div>
+                        <p className={styles.reviewComment}>{rev.comment}</p>
+                    </div>
+                ))}
+
+                {/* Cập nhật lại logic báo trống review */}
+                {reviews.length === 0 && (
+                    <p style={{ color: '#666' }}>Chưa có đánh giá nào cho ứng dụng này. Hãy là người đầu tiên!</p>
+                )}
+            </div>
 
         </div>
     );

@@ -1,70 +1,87 @@
-import React, { useRef } from 'react';
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styles from './Slider.module.css';
 
 const Slider = ({ title, apps }) => {
-    const scrollRef = useRef(null);
     const navigate = useNavigate();
+    const trackRef = useRef(null);
 
-    const scroll = (direction) => {
-        const { current } = scrollRef;
-        if (direction === 'left') current.scrollLeft -= 300;
-        else current.scrollLeft += 300;
+    // Trạng thái hiển thị mũi tên
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
+
+    // Giới hạn tối đa 50 app theo yêu cầu
+    const displayApps = apps.slice(0, 50);
+
+    // Hàm kiểm tra vị trí cuộn để ẩn/hiện mũi tên
+    const checkScroll = () => {
+        if (trackRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = trackRef.current;
+            setCanScrollLeft(scrollLeft > 0);
+            // Sai số 1px để tránh bug trên một số trình duyệt
+            setCanScrollRight(Math.ceil(scrollLeft + clientWidth) < scrollWidth);
+        }
     };
 
-    if (!apps || apps.length === 0) return null;
+    // Cập nhật mũi tên khi load lần đầu hoặc khi apps thay đổi
+    useEffect(() => {
+        checkScroll();
+        // Lắng nghe sự kiện resize cửa sổ để tính toán lại mũi tên
+        window.addEventListener('resize', checkScroll);
+        return () => window.removeEventListener('resize', checkScroll);
+    }, [apps]);
+
+    // Hàm xử lý khi nhấn nút mũi tên
+    const scroll = (direction) => {
+        if (trackRef.current) {
+            const scrollAmount = direction === 'left' ? -600 : 600; // Mỗi lần trượt đi khoảng 4-5 app
+            trackRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        }
+    };
+
+    if (!displayApps || displayApps.length === 0) return null;
 
     return (
-        <div className="mb-12 relative group">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">{title}</h2>
+        <section className={styles.sliderSection}>
+            <h2 className={styles.title}>{title}</h2>
 
-            {/* Nút cuộn Trái (Chỉ hiện khi hover vào group) */}
-            <button
-                onClick={() => scroll('left')}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -ml-5 z-10 bg-white shadow-lg border border-gray-100 p-2 rounded-full text-gray-600 hover:text-primary hover:scale-110 transition-all opacity-0 group-hover:opacity-100 disabled:opacity-0"
-            >
-                <ChevronLeft size={24} />
-            </button>
+            <div className={styles.sliderContainer}>
+                {/* Nút Trái */}
+                {canScrollLeft && (
+                    <button className={`${styles.navButton} ${styles.btnLeft}`} onClick={() => scroll('left')}>
+                        &#10094; {/* Icon mũi tên trái */}
+                    </button>
+                )}
 
-            {/* Danh sách cuộn ngang */}
-            <div ref={scrollRef} className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide py-2 w-full">
-                {apps.map((app, index) => (
-                    <div
-                        key={index}
-                        onClick={() => navigate(`/app/${app.id || index}`)}
-                        className="app-card min-w-[160px] max-w-[160px]"
-                    >
-                        {/* Icon Ứng dụng */}
-                        <img
-                            src={app.image}
-                            alt={app.title}
-                            className="app-icon mb-3"
-                        />
-                        {/* Thông tin */}
-                        <h3 className="font-bold text-gray-900 text-base leading-tight truncate">{app.title}</h3>
-                        <p className="text-sm text-gray-500 truncate mt-1">{app.developer}</p>
-
-                        <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center text-xs font-medium text-gray-600">
-                                <span className="mr-1">{app.rating}</span>
-                                <Star size={12} className="fill-yellow-400 text-yellow-400" />
+                {/* Thanh trượt chứa các app */}
+                <div className={styles.trackWrapper} ref={trackRef} onScroll={checkScroll}>
+                    <div className={styles.track}>
+                        {displayApps.map((app) => (
+                            // Sửa dòng onClick trong thẻ appCard
+                            <div
+                                key={app._id}
+                                className={styles.appCard}
+                                onClick={() => navigate(`/app/${encodeURIComponent(app.title)}`)} // Dùng title thay vì _id
+                            >
+                                <img src={app.icon} alt={app.title} className={styles.appIcon} />
+                                <div className={styles.appTitle}>{app.title}</div>
+                                <div className={styles.appDeveloper}>{app.developer}</div>
+                                <div className={styles.appRating}>
+                                    <span>★</span> {app.score ? app.score.toFixed(1) : 'Chưa có'}
+                                </div>
                             </div>
-                            <span className="text-sm font-bold text-primary">
-                                {app.price === 0 ? 'Miễn phí' : `$${app.price}`}
-                            </span>
-                        </div>
+                        ))}
                     </div>
-                ))}
-            </div>
+                </div>
 
-            {/* Nút cuộn Phải (Chỉ hiện khi hover vào group) */}
-            <button
-                onClick={() => scroll('right')}
-                className="absolute right-0 top-1/2 -translate-y-1/2 -mr-5 z-10 bg-white shadow-lg border border-gray-100 p-2 rounded-full text-gray-600 hover:text-primary hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
-            >
-                <ChevronRight size={24} />
-            </button>
-        </div>
+                {/* Nút Phải */}
+                {canScrollRight && (
+                    <button className={`${styles.navButton} ${styles.btnRight}`} onClick={() => scroll('right')}>
+                        &#10095; {/* Icon mũi tên phải */}
+                    </button>
+                )}
+            </div>
+        </section>
     );
 };
 

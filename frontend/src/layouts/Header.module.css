@@ -1,0 +1,176 @@
+.header {
+  background-color: #ffffff;
+  height: 70px;
+  padding: 0 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Phần Logo */
+.logoContainer {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.logo {
+  height: 40px;
+  width: auto;
+}
+
+/* Phần Tìm kiếm */
+.searchWrapper {
+  position: relative;
+  flex: 0 1 400px;
+}
+.searchInput {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  border-radius: 24px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.searchInput:focus {
+  border-color: var(--primary-color);
+}
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-top: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  list-style: none;
+  overflow: hidden;
+  z-index: 10;
+}
+.suggestionItem {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.suggestionItem:hover {
+  background-color: #f0fdf4; /* Xanh lá rất nhạt */
+}
+
+/* Phần Auth / User */
+.authContainer {
+  position: relative;
+}
+.loginBtn {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.loginBtn:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Avatar & Dropdown */
+.avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.dropdown {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  width: 220px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+  z-index: 20;
+}
+.dropdownHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+.avatarSmall {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.dropdownHeader span {
+  font-weight: 600;
+  font-size: 15px;
+}
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userEmail {
+  font-size: 13px;
+  margin: 2px 0 0;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dropdownItem {
+  padding: 12px 16px;
+  display: block;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dropdownItem:hover {
+  background-color: #f9fafb;
+  color: var(--primary-color);
+}
+.logoutBtn {
+  border-top: 1px solid #eee;
+  color: #d32f2f;
+}
+.logoutBtn:hover {
+  background-color: #fef2f2;
+  color: #d32f2f;
+}
