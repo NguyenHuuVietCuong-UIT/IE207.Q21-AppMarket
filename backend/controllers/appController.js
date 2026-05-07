@@ -40,12 +40,11 @@ exports.getAppSuggestions = async (req, res) => {
 exports.getSearchResults = async (req, res) => {
     try {
         const keyword = req.query.q;
+        // Bỏ $or, chỉ tìm theo title
         const apps = await App.find({
-            $or: [
-                { title: { $regex: keyword, $options: 'i' } },
-                { description: { $regex: keyword, $options: 'i' } }
-            ]
+            title: { $regex: keyword, $options: 'i' }
         }).select('title icon developer score minInstalls price');
+
         res.status(200).json({ success: true, count: apps.length, data: apps });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

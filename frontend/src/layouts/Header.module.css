@@ -15,10 +15,13 @@
 .logoContainer {
   display: flex;
   align-items: center;
+  height: 100%;
   cursor: pointer;
 }
 .logo {
-  height: 40px;
+  display: block;
+  margin: 0;
+  height: 80px;
   width: auto;
 }
 

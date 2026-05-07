@@ -1,0 +1,123 @@
+.searchContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    min-height: calc(100vh - 140px); /* Trừ đi header và footer */
+}
+
+.pageTitle {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.keyword {
+    color: #4CAF50; /* Màu chủ đạo của AppMarket */
+}
+
+.loading, .error, .emptyState {
+    text-align: center;
+    padding: 50px 0;
+    font-size: 18px;
+    color: #666;
+}
+
+.error {
+    color: #e74c3c;
+}
+
+.emptyState p {
+    margin-top: 15px;
+}
+
+/* Lưới hiển thị ứng dụng */
+.appGrid {
+    display: grid;
+    /* Tự động tính toán số cột dựa trên kích thước màn hình, tối thiểu 280px mỗi cột */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* Card ứng dụng */
+.appCard {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 12px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.appCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-color: #4CAF50;
+}
+
+.appIcon {
+    width: 75px;
+    height: 75px;
+    border-radius: 16px;
+    object-fit: cover;
+    margin-right: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.appInfo {
+    flex: 1;
+    overflow: hidden;
+}
+
+.appTitle {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 5px 0;
+    /* Cắt chữ nếu tên app quá dài (hiển thị dấu ...) */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.appDeveloper {
+    font-size: 13px;
+    color: #7f8c8d;
+    margin: 0 0 8px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.appStats {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #95a5a6;
+    margin-bottom: 8px;
+}
+
+.appScore {
+    color: #f39c12; /* Màu vàng cho sao */
+    font-weight: 600;
+}
+
+.dot {
+    margin: 0 6px;
+}
+
+/* Badge hiển thị Giá / Miễn phí */
+.appPriceBadge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+/* Nếu là app trả phí có thể css riêng trên JSX, ở đây dùng chung format */
