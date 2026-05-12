@@ -33,7 +33,7 @@ const Header = () => {
 
     // 2. Logic Avatar: Lấy chữ cái đầu của họ và tên
     const getInitials = (name) => {
-        if (!name) return '';
+        if (!name || typeof name !== 'string') return 'U'; // Trả về 'U' (User) nếu không có tên
         const words = name.trim().split(' ');
         if (words.length === 1) return words[0].charAt(0).toUpperCase();
         return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
@@ -42,7 +42,10 @@ const Header = () => {
     // 3. Logic Avatar: Random màu nền cố định dựa trên tên user
     const avatarColor = useMemo(() => {
         const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#00bcd4', '#009688', '#ff9800', '#4CAF50'];
-        if (!user) return colors[0];
+
+        // KIỂM TRA THÊM user.fullName
+        if (!user || !user.fullName || typeof user.fullName !== 'string') return colors[0];
+
         // Dùng mã ASCII của tên để chọn màu cố định cho mỗi user
         const charCodeSum = user.fullName.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
         return colors[charCodeSum % colors.length];
@@ -159,7 +162,7 @@ const Header = () => {
                             style={{ backgroundColor: avatarColor }}
                             onClick={() => setShowDropdown(!showDropdown)}
                         >
-                            {getInitials(user.fullName)}
+                            {getInitials(user?.fullName)} {/* Sửa ở đây */}
                         </div>
 
                         {showDropdown && (
@@ -167,23 +170,26 @@ const Header = () => {
                                 {/* Dòng 1: Profile Summary */}
                                 <div className={styles.dropdownHeader}>
                                     <div className={styles.avatarSmall} style={{ backgroundColor: avatarColor }}>
-                                        {getInitials(user.fullName)}
+                                        {getInitials(user?.fullName)} {/* Sửa ở đây */}
                                     </div>
                                     <div className={styles.userInfo}>
-                                        <p className={styles.userName}>{user.fullName}</p>
-                                        <p className={styles.userEmail}>{user.email || user.phone}</p>
+                                        <p className={styles.userName}>{user?.fullName || 'Người dùng'}</p> {/* Sửa ở đây */}
+                                        <p className={styles.userEmail}>{user?.email || user?.phone}</p>
                                     </div>
                                 </div>
 
-                                {/* Dòng 2 & 3: Navigation */}
+                                {/* Dòng 2 & 3 & 4: Navigation */}
                                 <Link to="/profile" className={styles.dropdownItem} onClick={() => setShowDropdown(false)}>
                                     Thông tin cá nhân
                                 </Link>
                                 <Link to="/payment" className={styles.dropdownItem} onClick={() => setShowDropdown(false)}>
                                     Thanh toán
                                 </Link>
+                                <Link to="/history" className={styles.dropdownItem} onClick={() => setShowDropdown(false)}>
+                                    Lịch sử giao dịch
+                                </Link>
 
-                                {/* Dòng 4: Đăng xuất */}
+                                {/* Dòng 5: Đăng xuất */}
                                 <div className={`${styles.dropdownItem} ${styles.logoutBtn}`} onClick={handleLogout}>
                                     Đăng xuất
                                 </div>

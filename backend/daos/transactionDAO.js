@@ -16,6 +16,13 @@ class TransactionDAO {
     async updateTransactionStatus(transactionId, status) {
         return await Transaction.findByIdAndUpdate(transactionId, { status }, { new: true });
     }
+
+    // Thêm đoạn này vào bên trong class TransactionDAO trong file transactionDAO.js
+    async getHistoryByUser(userId) {
+        return await Transaction.find({ user: userId })
+            .populate('app', 'title icon developer price') // Lấy kèm thông tin app
+            .sort({ createdAt: -1 }); // Sắp xếp mới nhất
+    }
 }
 
 module.exports = new TransactionDAO();

@@ -1,14 +1,20 @@
 const express = require('express');
-const { processTransaction, downloadAppFile, uninstallApp } = require('../controllers/transactionController');
+const {
+    processTransaction,
+    downloadAppFile,
+    uninstallApp,
+    getMyHistory // Thêm hàm này
+} = require('../controllers/transactionController');
 const { protect } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
-// Tất cả các route trong này đều phải đi qua middleware protect (Bắt buộc đăng nhập)
-router.post('/process', protect, processTransaction);
-router.get('/download/:appId', protect, downloadAppFile);
+// Tất cả route đều phải qua protect
+router.use(protect);
 
-// Route gỡ cài đặt ứng dụng (Dùng PUT vì ta đang cập nhật trạng thái của tài nguyên có sẵn)
-router.put('/uninstall/:appId', protect, uninstallApp);
+router.get('/my-history', getMyHistory); // Route mới cho trang Lịch sử
+router.post('/process', processTransaction);
+router.get('/download/:appId', downloadAppFile);
+router.put('/uninstall/:appId', uninstallApp);
 
 module.exports = router;

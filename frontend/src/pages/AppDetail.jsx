@@ -52,6 +52,14 @@ const AppDetail = () => {
     };
 
     const handleInstall = () => {
+        // KIỂM TRA: Nếu app có giá > 0, chuyển hướng sang trang Thanh Toán
+        if (app.price > 0) {
+            // Có thể truyền thêm dữ liệu app qua state để trang Payment khỏi phải fetch lại
+            navigate('/payment', { state: { app } });
+            return;
+        }
+
+        // --- NẾU APP MIỄN PHÍ: Chạy thanh tiến trình tải app ---
         setStatus('DOWNLOADING');
         setProgress(0);
         const totalTime = (app.sizeMB || 50) * 50;
@@ -62,7 +70,7 @@ const AppDetail = () => {
             setProgress((prev) => {
                 if (prev >= 100) {
                     clearInterval(timer);
-                    completeInstallation();
+                    completeInstallation(); // Tải xong thì gọi API ghi nhận miễn phí
                     return 100;
                 }
                 return prev + step;
@@ -72,11 +80,32 @@ const AppDetail = () => {
 
     const completeInstallation = async () => {
         try {
+            // 1. Tăng lượt tải hôm nay
             await axios.post(`/api/v1/apps/${app._id}/download-count`);
+
+            // 2. GHI NHẬN GIAO DỊCH (Lịch sử tải) - Lưu ý URL có chữ /process ở cuối
+            const token = localStorage.getItem('token');
+            if (token) {
+                await axios.post('/api/v1/transactions/process', {
+                    appId: app._id
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+            }
+
+            // 3. Đổi trạng thái thành Đã cài đặt
             setStatus('INSTALLED');
+
+            // 4. Kích hoạt tải file .txt (Giả lập tải app)
+            window.location.href = `/api/v1/transactions/download/${app._id}`;
+
             alert('Đã tải xong! Trình duyệt sẽ lưu file .txt chứa tên app.');
         } catch (err) {
             console.error("Lỗi khi hoàn tất cài đặt", err);
+            // Nếu lỗi 401 hoặc 403, có thể do token hết hạn hoặc chưa đăng nhập
+            if (err.response?.status === 401) {
+                alert('Vui lòng đăng nhập để lưu lịch sử tải ứng dụng!');
+            }
         }
     };
 

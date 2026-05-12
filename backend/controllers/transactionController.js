@@ -2,6 +2,25 @@ const transactionDAO = require('../daos/transactionDAO');
 const appDAO = require('../daos/appDAO'); // Cần gọi appDAO để lấy thông tin giá và dung lượng
 const promotionDAO = require('../daos/promotionDAO'); // Dùng để áp dụng mã giảm giá sau này
 
+// THÊM MỚI: @desc Lấy lịch sử giao dịch/tải app của user hiện tại
+// @route   GET /api/v1/transactions/my-history
+exports.getMyHistory = async (req, res) => {
+    try {
+        const userId = req.user._id; // Middleware protect gắn user vào req
+
+        // Gọi DAO để lấy danh sách giao dịch (Bạn cần đảm bảo hàm getHistoryByUser có trong DAO, xem bước 2 bên dưới)
+        const history = await transactionDAO.getHistoryByUser(userId);
+
+        res.status(200).json({
+            success: true,
+            count: history.length,
+            data: history
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Lỗi khi tải lịch sử', error: error.message });
+    }
+};
+
 // @desc    Xử lý tải app miễn phí hoặc mua app tốn phí
 // @route   POST /api/v1/transactions/process
 exports.processTransaction = async (req, res) => {
